@@ -1,8 +1,8 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from shadowHierarchy import ShadowDir, ShadowNonDir, ShadowHierarchy
-import types
 import json
+from constantTypes import *
 
 def formatCommands(jsonEncodedCommands):
   commandNames = list(jsonEncodedCommands.keys())
@@ -30,7 +30,7 @@ def getHelp(jsonEncodedCommands):
 def generateShadows(shadowDir, fileList):
   return map(
     lambda driveFile: 
-      ShadowDir(driveFile['id'], driveFile['title'], shadowDir, driveFile) if driveFile['mimeType'] == types.FOLDER_MIMETYPE 
+      ShadowDir(driveFile['id'], driveFile['title'], shadowDir, driveFile) if driveFile['mimeType'] == FOLDER_MIMETYPE 
       else ShadowNonDir(driveFile['id'], driveFile['title'], shadowDir, driveFile), 
     fileList
   )
@@ -66,10 +66,10 @@ def listFiles(shadowDir):
     f'{newLine.join(isolateSubNonDirs(shadowDir))}'
   )
 
-def performAction(validatedResponse, shadowDir, commandKeys):
+def performAction(validatedResponse, shadowDir, jsonEncodedCommands, commandKeys):
   command = deformatResponse(response)
   if command in ['help', 'h']:
-    print(getHelp(commandKeys))
+    print(getHelp(jsonEncodedCommands))
   elif command in ['up', 'u']:
     if shadowDir.getParent() is not None:
       return shadowDir.getParent()
@@ -89,7 +89,7 @@ def performAction(validatedResponse, shadowDir, commandKeys):
     print('TODO')
   return shadowDir
 
-            
+print(FOLDER_MIMETYPE)
 jsonEncodedCommands = None
 with open('commands.json') as commands:
   jsonEncodedCommands = json.loads(commands.read())
@@ -103,9 +103,9 @@ drive = GoogleDrive(gauth)
 shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
 
 targetedDir = None
-currentDir = shadowHierarchy.getRoot().getId()
+currentDir = shadowHierarchy.getRoot()
 while targetedDir is None:
-  query = f"'{currentDir}' in parents and trashed=false"
+  query = f"'{currentDir.getId()}' in parents and trashed=false"
   fileList = drive.ListFile({'q': query}).GetList()
 
   shadowFiles = generateShadows(currentDir, fileList)
@@ -113,7 +113,7 @@ while targetedDir is None:
     currentDir.addChild(shadowFile)
 
   response = getAction(commandKeys)
-  currentDir = performAction(response, currentDir, commandKeys)
+  currentDir = performAction(response, currentDir, jsonEncodedCommands, commandKeys)
 
         
         
