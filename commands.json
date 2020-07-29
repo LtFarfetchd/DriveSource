@@ -18,7 +18,6 @@
   },
   "target": {
     "shortcut": "t",
-    "description": "confirms either the current directory or `dir` (if provided) as the source directory",
-    "arguments": ["?dir"]
+    "description": "attempts to set the current directory as the source directory"
   }
 }

@@ -11,7 +11,7 @@ def formatCommands(jsonEncodedCommands):
       lambda key : (
         f'[{jsonEncodedCommands[key]["shortcut"]}] '
         f'{key} '
-        f'{"|" + ", ".join(jsonEncodedCommands[key]["arguments"]) + "|" if "arguments" in jsonEncodedCommands[key] else ""} '
+        f'{("|" + ", ".join(jsonEncodedCommands[key]["arguments"]) + "|") if "arguments" in jsonEncodedCommands[key] else ""} '
         '-> '
         f'{jsonEncodedCommands[key]["description"]}'),
       commandNames
@@ -35,18 +35,25 @@ def generateShadows(shadowDir, fileList):
     fileList
   )
 
-def deformatResponse(response):
+def getCommand(response):
   return response.split()[0].lower()
 
 def getArguments(validatedResponse):
   return list(map(lambda arg: arg.lower(), validatedResponse.split()[1:]))
 
-def getAction(permittedCommands):
+def getInputResponse(permittedCommands):
   responded = False
   while not responded:
-    response = input('SD >| ')
-    if deformatResponse(response) in permittedCommands:
+    response = input(f'{CLI_PROMPT} ')
+    if getCommand(response) in permittedCommands:
       return response
+
+def getBooleanResponse(prompt):
+  responded = False
+  while not responded:
+    validatedResponse = input(prompt).lower()
+    if validatedResponse in ['y', 'n']:
+      return validatedResponse == 'y'
 
 def getPath(shadowDir):
   if shadowDir.parentDir is None:
@@ -70,28 +77,43 @@ def listFiles(shadowDir):
     f'{nonDirSeparator.join(isolateFilesByShadowType(shadowDir, ShadowNonDir))}'
   )
 
-def performAction(validatedResponse, shadowDir, jsonEncodedCommands, commandKeys):
-  command = deformatResponse(response)
+def performAction(validatedResponse, currentDir, shadowHierarchy, jsonEncodedCommands, commandKeys):
+  command = getCommand(validatedResponse)
   if command in ['help', 'h']:
     print(getHelp(jsonEncodedCommands))
+
   elif command in ['up', 'u']:
-    if shadowDir.parentDir is not None:
-      return shadowDir.parentDir
+    if currentDir.parentDir is not None:
+      return currentDir.parentDir
     else:
-      print('Cannot navigate up: you are at the root') 
+      print('Cannot navigate up: you are at the root.') 
+
   elif command in ['down', 'd']:
     argDir = getArguments(validatedResponse)[0]
     try:
-      nextDir = shadowDir.children[argDir]
+      nextDir = currentDir.children[argDir]
       return nextDir
     except KeyError:
-      print('Cannot navigate down: the specified directory does not exist')
+      print('Cannot navigate down: the specified directory does not exist.')
+
   elif command in ['list', 'l']:
-    print(f'{getPath(shadowDir)}\n')
-    print(f'{listFiles(shadowDir)}\n')
+    print(f'{getPath(currentDir)}\n')
+    print(f'{listFiles(currentDir)}\n')
+
   elif command in ['target', 't']:
-    print('TODO')
-  return shadowDir
+    targetWillChange = True
+    if shadowHierarchy.target is not None:
+      targetWillChange = getBooleanResponse(
+        f'Target has already been set to {getPath(shadowHierarchy.target)}.\n'
+        f'Changing the target requires a full local re-sync. Change the target to {getPath(currentDir)} anyway [Y/n]?'
+      )
+    if targetWillChange:
+      shadowHierarchy.target = currentDir
+      print(f'{getPath(currentDir)} set as target.')
+    else:
+      print('Target was not changed.')
+
+  return currentDir
 
 jsonEncodedCommands = None
 with open('commands.json') as commands:
@@ -104,7 +126,7 @@ gauth = GoogleAuth()
 gauth.LocalWebserverAuth()
 drive = GoogleDrive(gauth)
 shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
-
+print(ASCII_ART_TITLE)
 targetedDir = None
 currentDir = shadowHierarchy.root
 while targetedDir is None:
@@ -115,8 +137,8 @@ while targetedDir is None:
       currentDir.addChild(shadowFile)
     currentDir.synced = True
 
-  response = getAction(commandKeys)
-  currentDir = performAction(response, currentDir, jsonEncodedCommands, commandKeys)
+  response = getInputResponse(commandKeys)
+  currentDir = performAction(response, currentDir, shadowHierarchy, jsonEncodedCommands, commandKeys)
 
         
         

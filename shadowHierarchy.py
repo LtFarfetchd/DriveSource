@@ -6,6 +6,7 @@ def formatKey(key):
 class ShadowHierarchy:
   def __init__(self, shadowRoot):
     self.root = shadowRoot
+    self.target = None
 
 class ShadowFile:
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
@@ -21,7 +22,6 @@ class ShadowFile:
 class ShadowDir(ShadowFile):
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
-    self.isTarget = False
     self.synced = False
 
   def addChild(self, shadowFile):
