@@ -108,12 +108,12 @@ shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
 targetedDir = None
 currentDir = shadowHierarchy.root
 while targetedDir is None:
-  query = f"'{currentDir.driveId}' in parents and trashed=false"
-  fileList = drive.ListFile({'q': query}).GetList()
-
-  shadowFiles = generateShadows(currentDir, fileList)
-  for shadowFile in shadowFiles:
-    currentDir.addChild(shadowFile)
+  if not currentDir.synced:
+    query = f"'{currentDir.driveId}' in parents and trashed=false"
+    fileList = drive.ListFile({'q': query}).GetList()
+    for shadowFile in generateShadows(currentDir, fileList):
+      currentDir.addChild(shadowFile)
+    currentDir.synced = True
 
   response = getAction(commandKeys)
   currentDir = performAction(response, currentDir, jsonEncodedCommands, commandKeys)

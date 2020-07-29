@@ -22,12 +22,10 @@ class ShadowDir(ShadowFile):
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     self.isTarget = False
+    self.synced = False
 
   def addChild(self, shadowFile):
     self.children[formatKey(shadowFile.displayName)] = shadowFile
-
-  def makeTarget(self):
-    self.isTarget = True
 
 class ShadowNonDir(ShadowFile):
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
