@@ -23,7 +23,7 @@ class ShadowFile:
     return self.parentDir
 
   def addChild(self, newChild):
-    self.children[newChild.getName()] = newChild
+    self.children[newChild.getName().lower()] = newChild
 
   def getChildren(self):
     return self.children
@@ -37,7 +37,7 @@ class ShadowDir(ShadowFile):
 class ShadowNonDir(ShadowFile):
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
-    self.mimeType = underlyingFile['mimetype']
+    self.mimeType = underlyingFile['mimeType']
 
   def getMimeType(self):
     return self.getMimeType

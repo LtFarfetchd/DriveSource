@@ -51,7 +51,7 @@ def getAction(permittedCommands):
 def getPath(shadowDir):
   if shadowDir.getParent() is None:
     return '/'
-  return f'{getPath(shadowDir.getParent())}/{shadowDir.getName()}'
+  return f'{getPath(shadowDir.getParent())}{shadowDir.getName()}/'
 
 def isolateSubDirs(shadowDir):
   return list(filter(lambda subFile : isinstance(subFile, ShadowDir), shadowDir.getChildren()))
