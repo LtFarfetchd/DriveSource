@@ -49,21 +49,25 @@ def getAction(permittedCommands):
       return response
 
 def getPath(shadowDir):
-  if shadowDir.getParent() is None:
+  if shadowDir.parentDir is None:
     return '/'
-  return f'{getPath(shadowDir.getParent())}{shadowDir.getName()}/'
+  return f'{getPath(shadowDir.parentDir)}{shadowDir.displayName}/'
 
-def isolateSubDirs(shadowDir):
-  return list(filter(lambda subFile : isinstance(subFile, ShadowDir), shadowDir.getChildren()))
-
-def isolateSubNonDirs(shadowDir):
-  return list(filter(lambda subFile : not isinstance(subFile, ShadowDir), shadowDir.getChildren()))
+def isolateFilesByShadowType(shadowDir, shadowType):
+  return list(map(
+    str,
+    filter(
+      lambda shadowChild : isinstance(shadowChild, shadowType), 
+      shadowDir.children.values()
+    )
+  ))
 
 def listFiles(shadowDir):
-  newLine = '\n'
+  nonDirSeparator = '\n'
+  dirSeparator = '\n/'
   return (
-    f'/{newLine.join(isolateSubDirs(shadowDir))}'
-    f'{newLine.join(isolateSubNonDirs(shadowDir))}'
+    f'/{dirSeparator.join(isolateFilesByShadowType(shadowDir, ShadowDir))}'
+    f'{nonDirSeparator.join(isolateFilesByShadowType(shadowDir, ShadowNonDir))}'
   )
 
 def performAction(validatedResponse, shadowDir, jsonEncodedCommands, commandKeys):
@@ -71,14 +75,14 @@ def performAction(validatedResponse, shadowDir, jsonEncodedCommands, commandKeys
   if command in ['help', 'h']:
     print(getHelp(jsonEncodedCommands))
   elif command in ['up', 'u']:
-    if shadowDir.getParent() is not None:
-      return shadowDir.getParent()
+    if shadowDir.parentDir is not None:
+      return shadowDir.parentDir
     else:
       print('Cannot navigate up: you are at the root') 
   elif command in ['down', 'd']:
     argDir = getArguments(validatedResponse)[0]
     try:
-      nextDir = shadowDir.getChildren()[argDir]
+      nextDir = shadowDir.children[argDir]
       return nextDir
     except KeyError:
       print('Cannot navigate down: the specified directory does not exist')
@@ -89,7 +93,6 @@ def performAction(validatedResponse, shadowDir, jsonEncodedCommands, commandKeys
     print('TODO')
   return shadowDir
 
-print(FOLDER_MIMETYPE)
 jsonEncodedCommands = None
 with open('commands.json') as commands:
   jsonEncodedCommands = json.loads(commands.read())
@@ -103,9 +106,9 @@ drive = GoogleDrive(gauth)
 shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
 
 targetedDir = None
-currentDir = shadowHierarchy.getRoot()
+currentDir = shadowHierarchy.root
 while targetedDir is None:
-  query = f"'{currentDir.getId()}' in parents and trashed=false"
+  query = f"'{currentDir.driveId}' in parents and trashed=false"
   fileList = drive.ListFile({'q': query}).GetList()
 
   shadowFiles = generateShadows(currentDir, fileList)

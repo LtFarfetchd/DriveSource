@@ -1,9 +1,9 @@
+def formatKey(key):
+  return key.lower()
+
 class ShadowHierarchy:
   def __init__(self, shadowRoot):
-    self.shadowRoot = shadowRoot
-
-  def getRoot(self):
-    return self.shadowRoot
+    self.root = shadowRoot
 
 class ShadowFile:
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
@@ -13,31 +13,14 @@ class ShadowFile:
     self.children = {}
     self.underlyingFile = underlyingFile
 
-  def getId(self):
-    return self.driveId
-
-  def getName(self):
+  def __str__(self):
     return self.displayName
 
-  def getParent(self):
-    return self.parentDir
-
-  def addChild(self, newChild):
-    self.children[newChild.getName().lower()] = newChild
-
-  def getChildren(self):
-    return self.children
-
-  def getUnderlying(self):
-    return self.underlyingFile
-
 class ShadowDir(ShadowFile):
-  pass
+  def addChild(self, shadowFile):
+    self.children[formatKey(shadowFile.displayName)] = shadowFile
 
 class ShadowNonDir(ShadowFile):
   def __init__(self, driveId, displayName, parentDir, underlyingFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     self.mimeType = underlyingFile['mimeType']
-
-  def getMimeType(self):
-    return self.getMimeType
