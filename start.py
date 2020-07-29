@@ -2,6 +2,7 @@ from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from shadowHierarchy import ShadowDir, ShadowNonDir, ShadowHierarchy
 from constantTypes import *
+import shlex
 import json
 
 def formatCommands(jsonEncodedCommands):
@@ -39,7 +40,7 @@ def getCommand(response):
   return response.split()[0].lower()
 
 def getArguments(validatedResponse):
-  return list(map(lambda arg: arg.lower(), validatedResponse.split()[1:]))
+  return list(map(lambda arg: arg.lower(), shlex.split(validatedResponse)[1:]))
 
 def getInputResponse(permittedCommands):
   responded = False
@@ -70,11 +71,13 @@ def isolateFilesByShadowType(shadowDir, shadowType):
   ))
 
 def listFiles(shadowDir):
-  nonDirSeparator = '\n'
+  newline = '\n'
   dirSeparator = '\n/'
+  dirs = isolateFilesByShadowType(shadowDir, ShadowDir)
+  nonDirs = isolateFilesByShadowType(shadowDir, ShadowNonDir)
   return (
-    f'/{dirSeparator.join(isolateFilesByShadowType(shadowDir, ShadowDir))}'
-    f'{nonDirSeparator.join(isolateFilesByShadowType(shadowDir, ShadowNonDir))}'
+    f'{"/" + dirSeparator.join(dirs) + newline if len(dirs) > 0 else ""}'
+    f'{newline.join(nonDirs)}'
   )
 
 def performAction(validatedResponse, currentDir, shadowHierarchy, jsonEncodedCommands, commandKeys):
