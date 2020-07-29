@@ -1,8 +1,8 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
 from shadowHierarchy import ShadowDir, ShadowNonDir, ShadowHierarchy
-import json
 from constantTypes import *
+import json
 
 def formatCommands(jsonEncodedCommands):
   commandNames = list(jsonEncodedCommands.keys())
