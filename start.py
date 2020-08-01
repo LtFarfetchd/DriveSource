@@ -1,6 +1,6 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from shadowHierarchy import ShadowFile, ShadowDir, ShadowNonDir, ShadowHierarchy
+from shadowHierarchy import *
 from constantTypes import *
 import shlex
 import json

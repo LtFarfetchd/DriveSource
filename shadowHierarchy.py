@@ -1,9 +1,6 @@
 from constantTypes import *
 from typing import Dict, Any
 
-def formatKey(key: str) -> str:
-  return key.lower()
-
 class ShadowHierarchy:
   def __init__(self, shadowRoot):
     self.root = shadowRoot
@@ -26,7 +23,7 @@ class ShadowDir(ShadowFile):
     self.synced = False
 
   def addChild(self, shadowFile):
-    self.children[formatKey(shadowFile.displayName)] = shadowFile
+    self.children[shadowFile.displayName.lower()] = shadowFile
 
 class ShadowNonDir(ShadowFile):
   def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: dict):
