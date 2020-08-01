@@ -1,5 +1,4 @@
 from typing import Dict, Any
-
 DriveFile = Dict[str, Any]
 
 CLI_PROMPT = 'SD >|'

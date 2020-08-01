@@ -1,4 +1,5 @@
-from constantTypes import *
+from __future__ import annotations
+from shell.constants import DriveFile, DRIVE_MIMETYPE_EXTENSIONS
 from typing import Dict, Any
 
 class ShadowHierarchy:
@@ -7,7 +8,7 @@ class ShadowHierarchy:
     self.target = None
 
 class ShadowFile:
-  def __init__(self, driveId: str, displayName: str, parentDir: ShadowFile, underlyingFile: DriveFile):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: DriveFile):
     self.driveId = driveId
     self.displayName = displayName
     self.parentDir = parentDir
@@ -18,7 +19,7 @@ class ShadowFile:
     return self.displayName
 
 class ShadowDir(ShadowFile):
-  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: dict):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: DriveFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     self.synced = False
 
@@ -26,12 +27,12 @@ class ShadowDir(ShadowFile):
     self.children[shadowFile.displayName.lower()] = shadowFile
 
 class ShadowNonDir(ShadowFile):
-  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: dict):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: DriveFile):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     try:
       self.extension = DRIVE_MIMETYPE_EXTENSIONS[underlyingFile['mimeType']]
     except KeyError:
-      self.extension = ''
+      self.extension = None
 
   def __str__(self):
     return f'{ShadowFile.__str__(self)}.{self.extension}'

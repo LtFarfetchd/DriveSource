@@ -1,7 +1,7 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from shadowHierarchy import *
-from constantTypes import *
+from shell.shadowHierarchy import ShadowFile, ShadowDir, ShadowNonDir, ShadowHierarchy
+from shell.constants import CLI_PROMPT, UNRECOGNISED_INPUT, DriveFile, ASCII_ART_TITLE, FOLDER_MIMETYPE
 import shlex
 import json
 from typing import Dict, List, Any, Iterator
@@ -128,31 +128,33 @@ def performAction(
 
   return newDir
 
-jsonEncodedCommands = None
-with open('commands.json') as commands:
-  jsonEncodedCommands = json.loads(commands.read())
 
-commandKeys = list(jsonEncodedCommands.keys())
-commandKeys.extend(list(map(lambda key : jsonEncodedCommands[key]['shortcut'], commandKeys)))
+def start():
+  jsonEncodedCommands = None
+  with open('shell/commands.json') as commands:
+    jsonEncodedCommands = json.loads(commands.read())
 
-print(ASCII_ART_TITLE)
+  commandKeys = list(jsonEncodedCommands.keys())
+  commandKeys.extend(list(map(lambda key : jsonEncodedCommands[key]['shortcut'], commandKeys)))
 
-gauth = GoogleAuth()
-gauth.LocalWebserverAuth()
-drive = GoogleDrive(gauth)
+  print(ASCII_ART_TITLE)
 
-shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
-currentDir = shadowHierarchy.root
-while True: # may need a genuine condition at some point
-  if not currentDir.synced:
-    query = f"'{currentDir.driveId}' in parents and trashed=false"
-    fileList = drive.ListFile({'q': query}).GetList()
-    for shadowFile in generateShadows(currentDir, fileList):
-      currentDir.addChild(shadowFile)
-    currentDir.synced = True
+  gauth = GoogleAuth()
+  gauth.LocalWebserverAuth()
+  drive = GoogleDrive(gauth)
 
-  response = getInputResponse(commandKeys)
-  currentDir = performAction(response, currentDir, shadowHierarchy, jsonEncodedCommands)
+  shadowHierarchy = ShadowHierarchy(ShadowDir('root', '', None, None))
+  currentDir = shadowHierarchy.root
+  while True: # may need a genuine condition at some point
+    if not currentDir.synced:
+      query = f"'{currentDir.driveId}' in parents and trashed=false"
+      fileList = drive.ListFile({'q': query}).GetList()
+      for shadowFile in generateShadows(currentDir, fileList):
+        currentDir.addChild(shadowFile)
+      currentDir.synced = True
+
+    response = getInputResponse(commandKeys)
+    currentDir = performAction(response, currentDir, shadowHierarchy, jsonEncodedCommands)
 
         
         
