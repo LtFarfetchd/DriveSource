@@ -1,6 +1,7 @@
 from constantTypes import *
+from typing import Dict, Any
 
-def formatKey(key):
+def formatKey(key: str) -> str:
   return key.lower()
 
 class ShadowHierarchy:
@@ -9,7 +10,7 @@ class ShadowHierarchy:
     self.target = None
 
 class ShadowFile:
-  def __init__(self, driveId, displayName, parentDir, underlyingFile):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowFile, underlyingFile: DriveFile):
     self.driveId = driveId
     self.displayName = displayName
     self.parentDir = parentDir
@@ -20,7 +21,7 @@ class ShadowFile:
     return self.displayName
 
 class ShadowDir(ShadowFile):
-  def __init__(self, driveId, displayName, parentDir, underlyingFile):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: dict):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     self.synced = False
 
@@ -28,7 +29,7 @@ class ShadowDir(ShadowFile):
     self.children[formatKey(shadowFile.displayName)] = shadowFile
 
 class ShadowNonDir(ShadowFile):
-  def __init__(self, driveId, displayName, parentDir, underlyingFile):
+  def __init__(self, driveId: str, displayName: str, parentDir: ShadowDir, underlyingFile: dict):
     ShadowFile.__init__(self, driveId, displayName, parentDir, underlyingFile)
     try:
       self.extension = DRIVE_MIMETYPE_EXTENSIONS[underlyingFile['mimeType']]

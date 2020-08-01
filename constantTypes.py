@@ -1,4 +1,9 @@
+from typing import Dict, Any
+
+DriveFile = Dict[str, Any]
+
 CLI_PROMPT = 'SD >|'
+UNRECOGNISED_INPUT = 'Command not recognised.'
 
 FOLDER_MIMETYPE = 'application/vnd.google-apps.folder'
 
