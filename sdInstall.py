@@ -1,6 +1,13 @@
-import os, sys, platform, shutil, errno, argparse
+import os, sys, platform, shutil, errno, argparse, urllib.request, json, typing
 from subprocess import Popen, PIPE
-from constants import VERSION, REPO_URL
+from operator import itemgetter
+from typing import Any, Dict, List
+
+def getGitHubScriptContents(fileList: List[Dict[str, Any]], scriptName: str) -> str:
+  script = next(script for script in fileList if script['name'] == scriptName)
+  req = urllib.request.urlopen(script['download_url'])
+  return req.read()
+
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
@@ -13,8 +20,30 @@ if __name__ == "__main__":
       Errors and output produced by your shell will be forwarded up to you. \
       The installer will keep you informed as it progresses through each step.'
   )
+  parser.add_argument(
+    'installDir', 
+    nargs='?', 
+    help='The local directory where you would like SourceDrive installed'
+  )
+  parser.add_argument(
+    'clientSecrets',
+    nargs='?',
+    help='A path to a `client_secrets.json` file in your local filesystem. \
+      The file should contain the json-encoded credentials of a Google Cloud \
+      Platform OAuth web-application client you have created, \
+      with the necessary Drive API permissions.'
+  )
   args = parser.parse_args()
   verbose = args.verbose
+
+  if (args.clientSecrets is None):
+    print('Warning: Path to a client secrets file has not been provided.\n\
+      You can add your credentials manually later, but SourceDrive will not \
+      be authorised to access your Drive folders until you do.')
+
+  # fetch constants
+  req = urllib.request.urlopen('https://raw.githubusercontent.com/LtFarfetchd/DriveSource/master/installConstants.json')
+  VERSION, REPO_URL = itemgetter('VERSION', 'REPO_URL')(json.loads(req.read()))
 
   print(f'Installing SourceDrive v{VERSION}')
 
@@ -27,23 +56,33 @@ if __name__ == "__main__":
   elif major == 3 and minor < 7:
     print('SourceDrive was built in Python 3.7. Although it should work in any 3.x, not all expected behaviour is guaranteed.')
 
+  if verbose:  
+    print('Fetching endpoints for additional installer files...')
+  # fetch install scripts
+  req = urllib.request.urlopen('https://api.github.com/repos/ltfarfetchd/DriveSource/contents/installScripts')
+  installFileList = json.loads(req.read())
+
   if verbose:
     print('Establishing os and appropriate shell...')
   currentDir = os.path.dirname(os.path.realpath(__file__))
   userOS = platform.system()
-  execution = None
+  installExecution = None
+  makeAliasExecution = None
   shell = None
 
   if userOS == 'Windows':
+    installScriptContents = getGitHubScriptContents(installFileList, 'install.ps1')
+    makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.ps1')
     shell = 'Powershell'
-    execution = [
+    installExecution = [
       "powershell.exe", 
       '-ExecutionPolicy',
       'Unrestricted',
       f'{currentDir}\\installScripts\\install.ps1'
     ]
-  else:
-    # assume posix-compliant, if not - well, bad luck
+  else: # assume posix-compliant, if not - well, bad luck
+    installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
+    makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.sh')
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = [
       'sh',
