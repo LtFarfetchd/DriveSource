@@ -40,14 +40,14 @@ if __name__ == "__main__":
       "powershell.exe", 
       '-ExecutionPolicy',
       'Unrestricted',
-      f'{currentDir}\\install\\install.ps1'
+      f'{currentDir}\\installScripts\\install.ps1'
     ]
   else:
     # assume posix-compliant, if not - well, bad luck
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = [
       'sh',
-      f'{currentDir}/install/install.sh'
+      f'{currentDir}/installScripts/install.sh'
     ]
 
   if verbose:
