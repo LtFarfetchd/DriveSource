@@ -101,23 +101,19 @@ if __name__ == "__main__":
       'powershell.exe', 
       '-ExecutionPolicy',
       'Unrestricted',
-      installScriptContents
     ]
   else: # assume posix-compliant, if not - well, bad luck
     installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
     makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.sh')
     shell = 'a POSIX-compliant shell such as bash or zsh'
-    execution = [
-      'sh',
-      installScriptContents
-    ]
+    execution = ['sh']
 
   # {5}: execute relevant installer script (pulling down git repo)
   if verbose:
     print('Attempting to add SourceDrive as an alias on your machine and refresh your shell...')
   try:
-    p = Popen(execution, stdout=PIPE, stderr=PIPE)
-    out, err = p.communicate()
+    p = Popen(execution, stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    out, err = p.communicate(input=installScriptContents)
     if verbose:
       print(f'Output from your shell:\n{out}')
   except PermissionError as e:
