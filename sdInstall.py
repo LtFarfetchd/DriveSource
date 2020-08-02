@@ -62,7 +62,7 @@ if __name__ == "__main__":
       sys.exit()
 
   # fetch constants
-  req = urllib.request.urlopen('https://raw.githubusercontent.com/LtFarfetchd/DriveSource/master/installConstants.json')
+  req = urllib.request.urlopen('https://raw.githubusercontent.com/LtFarfetchd/DriveSource/install/installConstants.json')
   VERSION, REPO_URL = itemgetter('VERSION', 'REPO_URL')(json.loads(req.read()))
 
   # --------- START INSTALLATION
@@ -81,7 +81,7 @@ if __name__ == "__main__":
   # {2}: prepare to fetch install scripts
   if verbose:  
     print('Fetching endpoints for additional installer files...')
-  req = urllib.request.urlopen('https://api.github.com/repos/ltfarfetchd/DriveSource/contents/installScripts')
+  req = urllib.request.urlopen('https://api.github.com/repos/ltfarfetchd/DriveSource/contents/installScripts?ref=install')
   installFileList = json.loads(req.read())
 
   # {3}: determine platform to branch between sh and ps1 install scripts
