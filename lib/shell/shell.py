@@ -1,7 +1,7 @@
 from pydrive.auth import GoogleAuth
 from pydrive.drive import GoogleDrive
-from shell.shadowHierarchy import ShadowFile, ShadowDir, ShadowNonDir, ShadowHierarchy
-from shell.constants import CLI_PROMPT, UNRECOGNISED_INPUT, DriveFile, ASCII_ART_TITLE, FOLDER_MIMETYPE
+from lib.shell.shadowHierarchy import ShadowFile, ShadowDir, ShadowNonDir, ShadowHierarchy
+from lib.shell.constants import CLI_PROMPT, UNRECOGNISED_INPUT, DriveFile, ASCII_ART_TITLE, FOLDER_MIMETYPE
 import shlex
 import json
 from typing import Dict, List, Any, Iterator

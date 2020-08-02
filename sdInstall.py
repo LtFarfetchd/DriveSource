@@ -25,7 +25,7 @@ if __name__ == "__main__":
     print('SourceDrive was built in Python 3.7. At this time, it is not backwards compatible with Python 2.x.\nExiting installer.')
     sys.exit()
   elif major == 3 and minor < 7:
-    print('SourceDrive was built in Python 3.7. Although it should work in 3.x, not all expected behaviour is guaranteed.')
+    print('SourceDrive was built in Python 3.7. Although it should work in any 3.x, not all expected behaviour is guaranteed.')
 
   if verbose:
     print('Establishing os and appropriate shell...')

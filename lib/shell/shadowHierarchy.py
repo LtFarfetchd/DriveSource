@@ -1,5 +1,5 @@
 from __future__ import annotations
-from shell.constants import DriveFile, DRIVE_MIMETYPE_EXTENSIONS
+from lib.shell.constants import DriveFile, DRIVE_MIMETYPE_EXTENSIONS
 from typing import Dict, Any
 
 class ShadowHierarchy:
