@@ -45,6 +45,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
   verbose = args.verbose
   callingDir = os.path.dirname(os.path.realpath(__file__))
+  installDir = args.installDir or callingDir
 
   # validate install location and client_secrets arguments
   if args.clientSecrets is None:
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 
   # fetch constants
   req = urllib.request.urlopen('https://raw.githubusercontent.com/LtFarfetchd/DriveSource/install/installConstants.json')
-  VERSION, REPO_URL = itemgetter('VERSION', 'REPO_URL')(json.loads(req.read()))
+  VERSION, REPO_URL, EXECUTABLE_PLACEHOLDER = itemgetter('VERSION', 'REPO_URL', 'EXECUTABLE_PLACEHOLDER')(json.loads(req.read()))
 
   # --------- START INSTALLATION
   print(f'Installing SourceDrive v{VERSION}')
@@ -97,6 +98,7 @@ if __name__ == "__main__":
 
   # {4}: prepare relevant installer and makeAlias scripts
   if userOS == 'Windows':
+    executablePath = f'{installDir}\\SourceDrive\\lib\\main.py'
     installScriptContents = getGitHubScriptContents(installFileList, 'install.ps1')
     shell = 'Powershell'
     installExecution = [
@@ -105,9 +107,11 @@ if __name__ == "__main__":
       'Unrestricted',
     ]
   else: # assume posix-compliant, if not - well, bad luck
+    executablePath = f'{installDir}/SourceDrive/lib/main.py'
     installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = ['sh']
+  installScriptContents = installScriptContents.replace(EXECUTABLE_PLACEHOLDER, executablePath)
 
   # {5}: execute relevant installer script (pulling down git repo)
   if verbose:
