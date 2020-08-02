@@ -1,16 +1,16 @@
 rc=""
 case "$SHELL" in
-"/bin/bash") rc=$("~/.bashrc") ;;
-"/bin/zsh") rc=$("~/.zshrc") ;;
+"/bin/bash") rc="$HOME/.bashrc" ;;
+"/bin/zsh") rc="$HOME/.zshrc" ;;
 esac
 
 if [ -z "$rc" ]; then
-    echo "Error: Could not identify run-command file to add aliases." 1>&2
+    echo "E: Could not identify run-command file to add aliases." 1>&2
     exit 1
 fi
 
 if ! [ -f "$rc" ]; then
-    printf "Error: The expected run-command file (%s) does not exist." "$rc" 1>&2
+    echo "E: The expected run-command file ($rc) does not exist." 1>&2
     exit 1
 fi
 

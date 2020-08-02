@@ -15,6 +15,9 @@ def getBooleanResponse(prompt: str) -> bool:
     if validatedResponse in ['y', 'n']:
       return validatedResponse == 'y'
 
+def decodeBytes(byteList: bytes) -> List[str]:
+  return list(filter(lambda string : string != '', byteList.decode().split('\n')))
+
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument(
@@ -95,7 +98,6 @@ if __name__ == "__main__":
   # {4}: prepare relevant installer and makeAlias scripts
   if userOS == 'Windows':
     installScriptContents = getGitHubScriptContents(installFileList, 'install.ps1')
-    makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.ps1')
     shell = 'Powershell'
     installExecution = [
       'powershell.exe', 
@@ -104,7 +106,6 @@ if __name__ == "__main__":
     ]
   else: # assume posix-compliant, if not - well, bad luck
     installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
-    makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.sh')
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = ['sh']
 
@@ -114,8 +115,13 @@ if __name__ == "__main__":
   try:
     p = Popen(execution, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     out, err = p.communicate(input=installScriptContents)
+    output, errors = decodeBytes(out), decodeBytes(err)
+    if len(errors) > 0:
+      print(f'The following errors occurred from within your shell during execution:\n{errors}')
+      print('Exiting installer')
+      sys.exit()
     if verbose:
-      print(f'Output from your shell:\n{out}')
+      print(f'Output from your shell:\n{output}')
   except PermissionError as e:
     print('Permissions to the necessary installer scripts are restricted such that the installer cannot run them.\nExiting installer.')
     sys.exit()
