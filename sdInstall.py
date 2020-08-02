@@ -111,7 +111,7 @@ if __name__ == "__main__":
     installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = ['sh']
-  installScriptContents = installScriptContents.replace(EXECUTABLE_PLACEHOLDER, executablePath)
+  installScriptContents = installScriptContents.decode().replace(EXECUTABLE_PLACEHOLDER, executablePath).encode()
 
   # {5}: execute relevant installer script (pulling down git repo)
   if verbose:

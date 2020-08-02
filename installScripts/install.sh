@@ -29,4 +29,4 @@ x=$(tail -c 1 "$rc")
 if [ -n "$x" ]; then
     echo >>$rc
 fi
-echo "alias sdr = '$pyAlias EXEPATH'" >>aFile.txt
+echo "alias sdr = $pyAlias EXEPATH" >>$rc
