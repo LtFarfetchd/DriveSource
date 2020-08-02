@@ -8,6 +8,12 @@ def getGitHubScriptContents(fileList: List[Dict[str, Any]], scriptName: str) -> 
   req = urllib.request.urlopen(script['download_url'])
   return req.read()
 
+def getBooleanResponse(prompt: str) -> bool:
+  responded = False
+  while not responded:
+    validatedResponse = input(prompt).lower()
+    if validatedResponse in ['y', 'n']:
+      return validatedResponse == 'y'
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
@@ -35,18 +41,34 @@ if __name__ == "__main__":
   )
   args = parser.parse_args()
   verbose = args.verbose
+  callingDir = os.path.dirname(os.path.realpath(__file__))
 
-  if (args.clientSecrets is None):
+  # validate install location and client_secrets arguments
+  if args.clientSecrets is None:
     print('Warning: Path to a client secrets file has not been provided.\n\
       You can add your credentials manually later, but SourceDrive will not \
       be authorised to access your Drive folders until you do.')
+    shouldProceed = getBooleanResponse('Proceed with installation anyway [y/n]? ')
+    if not shouldProceed:
+      print('Exiting installer.')
+      sys.exit()
+
+  if args.installDir is None:
+    print('Warning: Path to an install directory was not provided.\n'
+      f'The installer will default to the calling directory ({callingDir}).')
+    shouldProceed = getBooleanResponse('Proceed with installation to the calling directory [y/n]? ')
+    if not shouldProceed:
+      print('Exiting installer.')
+      sys.exit()
 
   # fetch constants
   req = urllib.request.urlopen('https://raw.githubusercontent.com/LtFarfetchd/DriveSource/master/installConstants.json')
   VERSION, REPO_URL = itemgetter('VERSION', 'REPO_URL')(json.loads(req.read()))
 
+  # --------- START INSTALLATION
   print(f'Installing SourceDrive v{VERSION}')
 
+  # {1}: validate python version
   if verbose:
     print('Verifying python version...')
   major, minor, patch = list(map(float, platform.python_version_tuple()))
@@ -56,29 +78,30 @@ if __name__ == "__main__":
   elif major == 3 and minor < 7:
     print('SourceDrive was built in Python 3.7. Although it should work in any 3.x, not all expected behaviour is guaranteed.')
 
+  # {2}: prepare to fetch install scripts
   if verbose:  
     print('Fetching endpoints for additional installer files...')
-  # fetch install scripts
   req = urllib.request.urlopen('https://api.github.com/repos/ltfarfetchd/DriveSource/contents/installScripts')
   installFileList = json.loads(req.read())
 
+  # {3}: determine platform to branch between sh and ps1 install scripts
   if verbose:
     print('Establishing os and appropriate shell...')
-  currentDir = os.path.dirname(os.path.realpath(__file__))
   userOS = platform.system()
   installExecution = None
   makeAliasExecution = None
   shell = None
 
+  # {4}: prepare relevant installer and makeAlias scripts
   if userOS == 'Windows':
     installScriptContents = getGitHubScriptContents(installFileList, 'install.ps1')
     makeAliasScriptContents = getGitHubScriptContents(installFileList, 'makeAlias.ps1')
     shell = 'Powershell'
     installExecution = [
-      "powershell.exe", 
+      'powershell.exe', 
       '-ExecutionPolicy',
       'Unrestricted',
-      f'{currentDir}\\installScripts\\install.ps1'
+      installScriptContents
     ]
   else: # assume posix-compliant, if not - well, bad luck
     installScriptContents = getGitHubScriptContents(installFileList, 'install.sh')
@@ -86,9 +109,10 @@ if __name__ == "__main__":
     shell = 'a POSIX-compliant shell such as bash or zsh'
     execution = [
       'sh',
-      f'{currentDir}/installScripts/install.sh'
+      installScriptContents
     ]
 
+  # {5}: execute relevant installer script (pulling down git repo)
   if verbose:
     print('Attempting to add SourceDrive as an alias on your machine and refresh your shell...')
   try:
@@ -105,6 +129,8 @@ if __name__ == "__main__":
     else:
       print(f'Your shell terminated with the following error:\n{err}.\nExiting installer.')
     sys.exit()
+
+    # {6}: execute relevant makeAlias script
   
 
   print(f'SourceDrive has been successfully installed!\nRun `sd -h` for usage, or check out the readme at {REPO_URL}.')
